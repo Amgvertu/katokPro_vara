@@ -444,7 +444,6 @@ public class AdService {
 
     private void validateAdRequest(AdRequest request) {
         if (request.getType() == null) {
-            // не можем валидировать – пропускаем
             return;
         }
         if (request.getSubType() == null) {
@@ -504,14 +503,22 @@ public class AdService {
                     throw new BadRequestException("Количество вратарей может быть 1 или 2");
                 }
             } else if (request.getSubType() == 2) {
-                if (request.getDefendersCount() == null || request.getForwardsCount() == null) {
-                    throw new BadRequestException("Не указано количество защитников или нападающих");
+                // ---------- ИСПРАВЛЕННАЯ ВАЛИДАЦИЯ ----------
+                Integer def = request.getDefendersCount();
+                Integer fwd = request.getForwardsCount();
+
+                boolean hasDefenders = def != null && def > 0;
+                boolean hasForwards = fwd != null && fwd > 0;
+
+                if (!hasDefenders && !hasForwards) {
+                    throw new BadRequestException("Должен быть указан хотя бы один игрок (защитник или нападающий)");
                 }
-                if (request.getDefendersCount() < 0 || request.getForwardsCount() < 0) {
-                    throw new BadRequestException("Количество игроков не может быть отрицательным");
+
+                if (def != null && def < 0) {
+                    throw new BadRequestException("Количество защитников не может быть отрицательным");
                 }
-                if (request.getDefendersCount() + request.getForwardsCount() == 0) {
-                    throw new BadRequestException("Должен быть указан хотя бы один игрок");
+                if (fwd != null && fwd < 0) {
+                    throw new BadRequestException("Количество нападающих не может быть отрицательным");
                 }
             }
         } else {
